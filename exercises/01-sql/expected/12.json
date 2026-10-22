@@ -1,0 +1,137 @@
+{
+ "columns": [
+  "city",
+  "place",
+  "user_id",
+  "name",
+  "total"
+ ],
+ "rows": [
+  [
+   "Berlin",
+   1,
+   23,
+   "John D.",
+   3556
+  ],
+  [
+   "Berlin",
+   2,
+   29,
+   "Oliver B.",
+   2665
+  ],
+  [
+   "Berlin",
+   3,
+   17,
+   "Roman S.",
+   1545.5
+  ],
+  [
+   "Lisbon",
+   1,
+   1,
+   "Paul M.",
+   2163.5
+  ],
+  [
+   "Lisbon",
+   2,
+   7,
+   "Sam S.",
+   2103
+  ],
+  [
+   "Lisbon",
+   3,
+   25,
+   "Arthur N.",
+   1944
+  ],
+  [
+   "London",
+   1,
+   6,
+   "Maria G.",
+   3796.5
+  ],
+  [
+   "London",
+   2,
+   12,
+   "Emma W.",
+   3778.5
+  ],
+  [
+   "London",
+   3,
+   24,
+   "Natalie P.",
+   2521.5
+  ],
+  [
+   "Paris",
+   1,
+   28,
+   "Sophie L.",
+   3078
+  ],
+  [
+   "Paris",
+   2,
+   10,
+   "Irene K.",
+   3017.5
+  ],
+  [
+   "Paris",
+   3,
+   4,
+   "Natalie P.",
+   2005.5
+  ],
+  [
+   "Prague",
+   1,
+   8,
+   "Sophie L.",
+   3276
+  ],
+  [
+   "Prague",
+   2,
+   20,
+   "Anna K.",
+   2889
+  ],
+  [
+   "Prague",
+   3,
+   26,
+   "Maria G.",
+   2114
+  ],
+  [
+   "Warsaw",
+   1,
+   15,
+   "David N.",
+   3147
+  ],
+  [
+   "Warsaw",
+   2,
+   9,
+   "Oliver B.",
+   2850
+  ],
+  [
+   "Warsaw",
+   3,
+   21,
+   "Paul M.",
+   1956
+  ]
+ ]
+}

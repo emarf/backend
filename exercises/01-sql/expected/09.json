@@ -1,0 +1,34 @@
+{
+ "columns": [
+  "venue_id",
+  "name",
+  "events_count",
+  "avg_price"
+ ],
+ "rows": [
+  [
+   2,
+   "Columbiahalle",
+   5,
+   104.2
+  ],
+  [
+   1,
+   "O2 Academy",
+   5,
+   96.1
+  ],
+  [
+   3,
+   "Olympia",
+   5,
+   94.2
+  ],
+  [
+   8,
+   "Basement Club",
+   5,
+   80.1
+  ]
+ ]
+}

@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: tickets-postgres
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: tickets
+      TZ: UTC
+      PGTZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      # Database files live in a named volume and survive container restarts
+      - pgdata:/var/lib/postgresql/data
+      # Scripts in this folder run once, when the database is first created
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d tickets"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  pgdata:

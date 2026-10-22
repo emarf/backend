@@ -1,0 +1,24 @@
+{
+ "columns": [
+  "status",
+  "cnt"
+ ],
+ "rows": [
+  [
+   "paid",
+   774
+  ],
+  [
+   "pending",
+   80
+  ],
+  [
+   "cancelled",
+   79
+  ],
+  [
+   "refunded",
+   67
+  ]
+ ]
+}
