@@ -1,6 +1,6 @@
 # Module 1. SQL
 
-14 tasks, from "read a table" to window functions. Each solution is a single SQL query
+22 tasks, from "read a table" to window functions. Each solution is a single SQL query
 in the `NN.sql` file. The task statement is already in a comment at the top of the file.
 
 ## How to work
@@ -59,3 +59,28 @@ like extracting a piece of code into a variable.
 city. `sum(x) OVER (ORDER BY day)` gives a running total.
 
 Docs: https://www.postgresql.org/docs/17/tutorial-sql.html (chapters 2 and 3).
+
+## Practice set 2 (tasks 15–22)
+
+The same ideas as tasks 08–14, phrased differently, plus a few new tools.
+Before writing SQL, say the plan in words: "join ..., filter ..., group by ..., then ...".
+
+| Task | Practice | New here |
+|---|---|---|
+| 15 | finding what is missing | `NOT EXISTS` (or `LEFT JOIN` + `HAVING`) |
+| 16 | `LEFT JOIN` that keeps zero counts | condition in `ON` vs `WHERE` |
+| 17 | `GROUP BY` + `HAVING` | `count(DISTINCT ...)` |
+| 18 | several aggregates over a 4-table join | — |
+| 19 | `WITH` + comparing with a per-group average | joining two CTEs |
+| 20 | top-1 in each group | — |
+| 21 | window functions | `lag()` — the value from the previous row |
+| 22 | window functions | `sum() OVER ()` — a total over all rows without collapsing them |
+
+**`NOT EXISTS (subquery)`** is true when the subquery returns no rows. The subquery can refer
+to the outer row: `WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.user_id = u.id)` reads
+as "no order belongs to this user".
+
+**`count(DISTINCT x)`** counts different values of `x`, ignoring repeats.
+
+**`lag(x) OVER (ORDER BY ...)`** returns `x` from the previous row in that order
+(`NULL` for the first row).

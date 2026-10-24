@@ -1,0 +1,34 @@
+{
+ "columns": [
+  "category",
+  "revenue",
+  "share_pct"
+ ],
+ "rows": [
+  [
+   "standup",
+   38475.5,
+   23.1
+  ],
+  [
+   "theatre",
+   35008.5,
+   21
+  ],
+  [
+   "concert",
+   33712.5,
+   20.2
+  ],
+  [
+   "festival",
+   29929.5,
+   18
+  ],
+  [
+   "sport",
+   29511.5,
+   17.7
+  ]
+ ]
+}

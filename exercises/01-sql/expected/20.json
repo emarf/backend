@@ -1,0 +1,40 @@
+{
+ "columns": [
+  "category",
+  "event_id",
+  "title",
+  "base_price"
+ ],
+ "rows": [
+  [
+   "concert",
+   35,
+   "Concert #35",
+   120
+  ],
+  [
+   "festival",
+   29,
+   "Festival #29",
+   140
+  ],
+  [
+   "sport",
+   3,
+   "Match #3",
+   140.5
+  ],
+  [
+   "standup",
+   32,
+   "Stand-up #32",
+   130
+  ],
+  [
+   "theatre",
+   16,
+   "Play #16",
+   140
+  ]
+ ]
+}
