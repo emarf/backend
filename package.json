@@ -7,7 +7,9 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait",
     "db:psql": "docker compose exec postgres psql -U app -d tickets",
-    "check:sql": "node tools/check-sql.ts"
+    "check:sql": "node tools/check-sql.ts",
+    "api:dev": "pnpm --filter tickets-api start:dev",
+    "test:api": "pnpm --filter tickets-api test:e2e"
   },
   "engines": {
     "node": ">=24"

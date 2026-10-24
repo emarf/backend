@@ -6,29 +6,30 @@ complex reports, races for the last ticket, caching, queues, load.
 
 Each module = theory + tasks + automated checks. You write the code, I review it.
 
-## Module 0. Environment
-- [ ] Install Docker Desktop (or OrbStack)
-- [ ] Start Postgres with `docker compose up -d`
-- [ ] Connect to the database with `psql` and with a GUI (TablePlus / DBeaver)
+## Module 0. Environment ✅
+- [x] Install Docker Desktop (or OrbStack)
+- [x] Start Postgres with `docker compose up -d`
+- [x] Connect to the database with `psql` and with a GUI (TablePlus / DBeaver)
 - Understand: image vs container, volume, port, environment variables
 
-## Module 1. SQL fundamentals (you are here)
+## Module 1. SQL fundamentals ✅
 - SELECT, WHERE, ORDER BY, LIMIT, NULL
 - GROUP BY, aggregates, HAVING
 - JOIN (INNER/LEFT), subqueries, CTEs (`WITH`)
 - Window functions (`ROW_NUMBER`, `SUM() OVER`, `LAG`)
-- 📁 `exercises/01-sql`
+- 📁 `exercises/01-sql` (tasks 15–22: extra practice — keep solving them alongside module 3)
 
 ## Module 2. Schema design
 - Primary/foreign keys, constraints (`UNIQUE`, `CHECK`, `NOT NULL`)
 - Normalization, 1:N and N:M relationships
 - Migrations (changing the schema without breaking production)
 
-## Module 3. NestJS + Postgres: your first API
+## Module 3. NestJS + Postgres: your first API (you are here)
 - Modules, controllers, services, DI (this is where decorators come in)
 - REST: the right methods and status codes (400, 409, 422…)
 - DTO validation, error handling, pagination
 - Database access: raw SQL via `pg` first, then an ORM — so you understand what the ORM does under the hood
+- 📁 `exercises/03-api`, code in `api/`
 
 ## Module 4. Authentication and security
 - Password hashing, sessions vs JWT, refresh tokens
