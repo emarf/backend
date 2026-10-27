@@ -1,7 +1,7 @@
 export const buildWhere = ({
   category,
   city,
-  minPrice
+  minPrice,
 }: Partial<{
   category: string;
   city: string;
@@ -26,6 +26,6 @@ export const buildWhere = ({
 
   return {
     values,
-    where: conditions.length > 0 ? `where ${conditions.join(" and ")}` : ""
+    where: conditions.length > 0 ? `where ${conditions.join(' and ')}` : '',
   };
 };

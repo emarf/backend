@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { Pool } from "pg";
-import { EventsPage } from "./dto/event.dto";
-import { ListEventsQuery } from "./dto/list-events-query.dto";
-import { toEventDto } from "./utils/toEventDto";
-import { buildWhere } from "./utils/buildWhere";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Pool } from 'pg';
+import { EventsPage } from './dto/event.dto';
+import { ListEventsQuery } from './dto/list-events-query.dto';
+import { toEventDto } from './utils/toEventDto';
+import { buildWhere } from './utils/buildWhere';
 
 export interface RawEvent {
   id: number;
@@ -26,6 +26,14 @@ export interface RawEventWithVenue {
   venue_capacity: number;
 }
 
+interface RawEventAvailability {
+  event_id: number;
+  capacity: number;
+  sold: number;
+  reserved: number;
+  available: number;
+}
+
 @Injectable()
 export class EventsService {
   constructor(private readonly db: Pool) {}
@@ -35,20 +43,20 @@ export class EventsService {
     offset,
     category,
     city,
-    minPrice
+    minPrice,
   }: ListEventsQuery): Promise<EventsPage> {
     const { values, where } = buildWhere({
       category,
       city,
-      minPrice
+      minPrice,
     });
 
     const total = await this.db.query<{ total: number }>(
       `select count(*)::int as total from events e
       join venues v
       on e.venue_id = v.id
-      ${where ? where : ""}`,
-      [...values]
+      ${where ? where : ''}`,
+      [...values],
     );
 
     const { rows } = await this.db.query<RawEvent>(
@@ -57,12 +65,12 @@ export class EventsService {
       from events e
       join venues v
       on e.venue_id = v.id
-      ${where ? where : ""}
+      ${where ? where : ''}
       order by e.starts_at, e.id 
       limit $${values.length + 1} 
       offset $${values.length + 2} 
       `,
-      [...values, limit, offset]
+      [...values, limit, offset],
     );
 
     return { items: rows.map(toEventDto), total: total.rows[0].total };
@@ -77,7 +85,7 @@ export class EventsService {
       on e.venue_id = v.id
       where e.id = $1;
       `,
-      [id]
+      [id],
     );
 
     const row = rows[0];
@@ -94,8 +102,44 @@ export class EventsService {
         id: row.venue_id,
         name: row.venue_name,
         city: row.venue_city,
-        capacity: row.venue_capacity
-      }
+        capacity: row.venue_capacity,
+      },
+    };
+  }
+
+  async getAvailability(id: number) {
+    const { rows } = await this.db.query<RawEventAvailability>(
+      `
+      with counts as (select e.id,
+	      count(*) filter(where o.status = 'paid')::int as sold,
+	      count(*) filter(where o.status = 'pending')::int as reserved,
+	      e.venue_id
+        from events e
+        left join tickets t 
+        on e.id = t.event_id 
+        left join orders o 
+        on o.id = t.order_id 
+        where e.id = $1
+        group by e.id
+        )
+        select c.id as event_id, v.capacity, c.sold, c.reserved, (v.capacity - c.sold - c.reserved) as available
+        from counts c
+        join venues v
+        on v.id = c.venue_id
+      `,
+      [id],
+    );
+
+    const row = rows[0];
+
+    if (!row) throw new NotFoundException(`No event with id ${id}`);
+
+    return {
+      eventId: row.event_id,
+      capacity: row.capacity,
+      sold: row.sold,
+      reserved: row.reserved,
+      available: row.available,
     };
   }
 }

@@ -1,4 +1,4 @@
-import { Type } from "class-transformer";
+import { Type } from 'class-transformer';
 import {
   IsInt,
   IsIn,
@@ -6,19 +6,20 @@ import {
   Max,
   Min,
   IsNumber,
-  IsString
-} from "class-validator";
-import { CATEGORIES } from "./event.dto";
+  IsString,
+} from 'class-validator';
+import { CATEGORIES } from './event.dto';
 
 export class ListEventsQuery {
-  @IsOptional()
   @Type(() => Number)
+  @IsOptional()
   @IsInt()
   @Min(1)
   @Max(100)
   limit: number = 20;
-  @IsOptional()
+
   @Type(() => Number)
+  @IsOptional()
   @IsInt()
   @Min(0)
   offset: number = 0;
@@ -29,12 +30,11 @@ export class ListEventsQuery {
 
   @IsOptional()
   @IsString()
-  @Type(() => String)
   city: string;
 
+  @Type(() => Number)
   @IsOptional()
   @IsNumber()
-  @Type(() => Number)
   @Min(0)
   minPrice: number;
 }

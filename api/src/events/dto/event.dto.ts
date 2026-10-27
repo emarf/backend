@@ -13,9 +13,9 @@ export interface EventsPage {
 }
 
 export const CATEGORIES = [
-  "concert",
-  "theatre",
-  "standup",
-  "sport",
-  "festival"
+  'concert',
+  'theatre',
+  'standup',
+  'sport',
+  'festival',
 ] as const;
