@@ -121,12 +121,17 @@ Learn: route params, `ParseIntPipe`, `NotFoundException`. Turning flat SQL rows 
 
 ### 03 · `GET /events` — filters
 
-Add optional filters to the same endpoint; they combine with each other and with pagination,
-and `total` counts only the matching events.
+Add optional query parameters to the same endpoint. Every filter is optional; filters combine
+with AND, and they work together with `limit` / `offset` from task 01.
 
 - `category` — one of `concert | theatre | standup | sport | festival`, otherwise **400**
-- `city` — the venue's city
+- `city` — the venue's city (the `venues` table), exact match. Any string is valid:
+  an unknown city simply finds nothing (`200`, `items: []`, `total: 0`)
 - `minPrice` — `basePrice >= minPrice`, a number ≥ 0, otherwise **400**
+
+The response shape does not change. `total` is the number of **all** events matching the filters,
+ignoring `limit` / `offset` — the client uses it to count pages. For example,
+`GET /events?category=concert&limit=1` returns one event in `items` and `"total": 8`.
 
 Learn: building a `WHERE` clause from optional parts while keeping every value a `$n` parameter.
 

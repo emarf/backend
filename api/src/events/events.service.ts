@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import { EventsPage } from "./dto/event.dto";
 import { ListEventsQuery } from "./dto/list-events-query.dto";
 import { toEventDto } from "./utils/toEventDto";
+import { buildWhere } from "./utils/buildWhere";
 
 export interface RawEvent {
   id: number;
@@ -29,20 +30,39 @@ export interface RawEventWithVenue {
 export class EventsService {
   constructor(private readonly db: Pool) {}
 
-  async findAll({ limit, offset }: ListEventsQuery): Promise<EventsPage> {
+  async findAll({
+    limit,
+    offset,
+    category,
+    city,
+    minPrice
+  }: ListEventsQuery): Promise<EventsPage> {
+    const { values, where } = buildWhere({
+      category,
+      city,
+      minPrice
+    });
+
+    const total = await this.db.query<{ total: number }>(
+      `select count(*)::int as total from events e
+      join venues v
+      on e.venue_id = v.id
+      ${where ? where : ""}`,
+      [...values]
+    );
+
     const { rows } = await this.db.query<RawEvent>(
       `
       select e.id, e.title, e.category, e.starts_at, e.base_price, e.venue_id
-      from events e 
+      from events e
+      join venues v
+      on e.venue_id = v.id
+      ${where ? where : ""}
       order by e.starts_at, e.id 
-      limit $1 
-      offset $2
+      limit $${values.length + 1} 
+      offset $${values.length + 2} 
       `,
-      [limit, offset]
-    );
-
-    const total = await this.db.query<{ total: number }>(
-      "select count(*)::int as total from events"
+      [...values, limit, offset]
     );
 
     return { items: rows.map(toEventDto), total: total.rows[0].total };

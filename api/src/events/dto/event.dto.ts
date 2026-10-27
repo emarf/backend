@@ -11,3 +11,11 @@ export interface EventsPage {
   items: EventDto[];
   total: number;
 }
+
+export const CATEGORIES = [
+  "concert",
+  "theatre",
+  "standup",
+  "sport",
+  "festival"
+] as const;
