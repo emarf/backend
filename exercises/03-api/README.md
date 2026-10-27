@@ -22,6 +22,7 @@ before every run. Your working database `tickets` is never touched, and the test
 users and orders freely.
 
 Workflow for each task:
+
 1. Read the task and the test file for it in `api/test/` — the test is the precise spec.
 2. Try the endpoint by hand while you build it: in the browser, `curl`, or Postman / Bruno.
 3. Run `pnpm test:api NN` until it is green.
