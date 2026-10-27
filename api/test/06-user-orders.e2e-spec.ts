@@ -14,14 +14,20 @@ describe('06 · GET /users/:id/orders — orders with tickets', () => {
   });
 
   it('returns all orders of the user, newest first', async () => {
-    const res = await request(app.getHttpServer()).get('/users/6/orders').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/users/6/orders')
+      .expect(200);
 
     expect(res.body).toHaveLength(19);
-    expect(res.body.slice(0, 4).map((o: { id: number }) => o.id)).toEqual([208, 992, 916, 666]);
+    expect(res.body.slice(0, 4).map((o: { id: number }) => o.id)).toEqual([
+      208, 992, 916, 666,
+    ]);
   });
 
   it('returns each order with its total and tickets', async () => {
-    const res = await request(app.getHttpServer()).get('/users/6/orders').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/users/6/orders')
+      .expect(200);
     const order = res.body.find((o: { id: number }) => o.id === 376);
 
     expect(order).toEqual({
@@ -41,7 +47,9 @@ describe('06 · GET /users/:id/orders — orders with tickets', () => {
   });
 
   it('orders tickets inside an order by id', async () => {
-    const res = await request(app.getHttpServer()).get('/users/6/orders').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/users/6/orders')
+      .expect(200);
 
     for (const order of res.body) {
       const ids = order.tickets.map((t: { id: number }) => t.id);
@@ -50,7 +58,9 @@ describe('06 · GET /users/:id/orders — orders with tickets', () => {
   });
 
   it('returns an empty array for a user without orders', async () => {
-    const res = await request(app.getHttpServer()).get('/users/190/orders').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/users/190/orders')
+      .expect(200);
 
     expect(res.body).toEqual([]);
   });

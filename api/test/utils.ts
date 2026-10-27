@@ -5,7 +5,9 @@ import { AppModule } from '../src/app.module';
 import { setupApp } from '../src/app.setup';
 
 export async function createTestApp(): Promise<INestApplication> {
-  const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+  const moduleRef = await Test.createTestingModule({
+    imports: [AppModule],
+  }).compile();
   const app = moduleRef.createNestApplication();
   setupApp(app);
   await app.init();

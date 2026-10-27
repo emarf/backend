@@ -69,8 +69,14 @@ describe('07 · POST /orders — book tickets', () => {
       .send({ userId, eventId: 40, quantity: 1 })
       .expect(201);
 
-    const order = await db.query('SELECT user_id, status FROM orders WHERE id = $1', [res.body.id]);
-    const tickets = await db.query('SELECT seat_no FROM tickets WHERE order_id = $1', [res.body.id]);
+    const order = await db.query(
+      'SELECT user_id, status FROM orders WHERE id = $1',
+      [res.body.id],
+    );
+    const tickets = await db.query(
+      'SELECT seat_no FROM tickets WHERE order_id = $1',
+      [res.body.id],
+    );
     expect(order.rows).toEqual([{ user_id: userId, status: 'pending' }]);
     expect(tickets.rows).toEqual([{ seat_no: 48 }]);
   });

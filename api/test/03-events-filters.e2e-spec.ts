@@ -14,23 +14,35 @@ describe('03 · GET /events — filters', () => {
   });
 
   it('filters by category', async () => {
-    const res = await request(app.getHttpServer()).get('/events?category=concert').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/events?category=concert')
+      .expect(200);
 
     expect(res.body.total).toBe(8);
-    expect(res.body.items.every((e: { category: string }) => e.category === 'concert')).toBe(true);
+    expect(
+      res.body.items.every(
+        (e: { category: string }) => e.category === 'concert',
+      ),
+    ).toBe(true);
   });
 
   it('filters by venue city', async () => {
-    const res = await request(app.getHttpServer()).get('/events?city=Berlin').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/events?city=Berlin')
+      .expect(200);
 
     expect(res.body.total).toBe(10);
   });
 
   it('filters by minimum base price (inclusive)', async () => {
-    const res = await request(app.getHttpServer()).get('/events?minPrice=100').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/events?minPrice=100')
+      .expect(200);
 
     expect(res.body.total).toBe(15);
-    expect(res.body.items.every((e: { basePrice: number }) => e.basePrice >= 100)).toBe(true);
+    expect(
+      res.body.items.every((e: { basePrice: number }) => e.basePrice >= 100),
+    ).toBe(true);
   });
 
   it('combines filters with each other and with pagination', async () => {
@@ -43,7 +55,9 @@ describe('03 · GET /events — filters', () => {
   });
 
   it('returns 400 for an unknown category', async () => {
-    await request(app.getHttpServer()).get('/events?category=opera').expect(400);
+    await request(app.getHttpServer())
+      .get('/events?category=opera')
+      .expect(400);
   });
 
   it('returns 400 for a negative minPrice', async () => {

@@ -53,7 +53,10 @@ describe('05 · POST /users — create a user with validation', () => {
     ['a missing name', { email: 'no.name@mail.test' }],
     ['an empty name', { email: 'empty.name@mail.test', name: '' }],
     ['a name that is not a string', { email: 'num.name@mail.test', name: 42 }],
-    ['an unknown field', { email: 'hacker@mail.test', name: 'Hacker', isAdmin: true }],
+    [
+      'an unknown field',
+      { email: 'hacker@mail.test', name: 'Hacker', isAdmin: true },
+    ],
   ])('returns 400 for %s', async (_, body) => {
     await request(app.getHttpServer()).post('/users').send(body).expect(400);
   });

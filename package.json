@@ -9,7 +9,9 @@
     "db:psql": "docker compose exec postgres psql -U app -d tickets",
     "check:sql": "node tools/check-sql.ts",
     "api:dev": "pnpm --filter tickets-api start:dev",
-    "test:api": "pnpm --filter tickets-api test:e2e"
+    "test:api": "pnpm --filter tickets-api test:e2e",
+    "format": "prettier --write \"api/**/*.ts\" \"tools/**/*.ts\"",
+    "format:check": "prettier --check \"api/**/*.ts\" \"tools/**/*.ts\""
   },
   "engines": {
     "node": ">=24"
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/node": "^24.19.2",
-    "@types/pg": "8.15.5"
+    "@types/pg": "8.15.5",
+    "prettier": "3.9.10"
   }
 }

@@ -27,7 +27,9 @@ describe('02 · GET /events/:id — one event with its venue', () => {
   });
 
   it('returns 404 for an event that does not exist', async () => {
-    const res = await request(app.getHttpServer()).get('/events/9999').expect(404);
+    const res = await request(app.getHttpServer())
+      .get('/events/9999')
+      .expect(404);
 
     expect(res.body.statusCode).toBe(404);
   });

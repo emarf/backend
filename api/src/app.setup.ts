@@ -6,7 +6,7 @@ export function setupApp(app: INestApplication): void {
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
-    })
-  )
+    }),
+  );
   app.enableShutdownHooks();
 }

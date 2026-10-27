@@ -18,6 +18,11 @@ describe('00 · GET /venues', () => {
     const res = await request(app.getHttpServer()).get('/venues').expect(200);
 
     expect(res.body).toHaveLength(8);
-    expect(res.body[0]).toEqual({ id: 1, name: 'O2 Academy', city: 'London', capacity: 500 });
+    expect(res.body[0]).toEqual({
+      id: 1,
+      name: 'O2 Academy',
+      city: 'London',
+      capacity: 500,
+    });
   });
 });

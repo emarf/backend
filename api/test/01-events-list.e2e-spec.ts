@@ -42,14 +42,20 @@ describe('01 · GET /events — list with pagination', () => {
   });
 
   it('supports limit and offset', async () => {
-    const res = await request(app.getHttpServer()).get('/events?limit=5&offset=5').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/events?limit=5&offset=5')
+      .expect(200);
 
     expect(res.body.total).toBe(40);
-    expect(res.body.items.map((e: { id: number }) => e.id)).toEqual([3, 30, 4, 31, 5]);
+    expect(res.body.items.map((e: { id: number }) => e.id)).toEqual([
+      3, 30, 4, 31, 5,
+    ]);
   });
 
   it('returns an empty page past the end', async () => {
-    const res = await request(app.getHttpServer()).get('/events?offset=100').expect(200);
+    const res = await request(app.getHttpServer())
+      .get('/events?offset=100')
+      .expect(200);
 
     expect(res.body).toEqual({ items: [], total: 40 });
   });
