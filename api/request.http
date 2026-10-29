@@ -1,8 +1,8 @@
-POST http://localhost:3000/users
+POST http://localhost:3000/orders
 Content-Type: application/json
 
 {
-  "email": "me5@mail.test",
-  "name": "Me",
-  "isAdmin": true
+  "userId": 1,
+  "eventId": 3,
+  "quantity": 10 
 }
