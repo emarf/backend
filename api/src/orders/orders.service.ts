@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Pool } from 'pg';
-import { CreateOrderDto } from './dto/order.dto';
+import { CreateOrderDto, ORDER_STATUS } from './dto/order.dto';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
@@ -125,5 +125,39 @@ export class OrdersService {
     } finally {
       client.release();
     }
+  }
+
+  async pay(id: number) {
+    const { rows } = await this.db.query(
+      `
+      select 1 from orders o
+      where o.id = $1
+      `,
+      [id],
+    );
+
+    const row = rows[0];
+
+    if (!row) {
+      throw new NotFoundException(`No order with id ${id}`);
+    }
+
+    const { rows: updatedOrder, rowCount } = await this.db.query(
+      `
+      update orders
+      set status = $1
+      where id = $2 and status = $3
+      returning id, status
+      `,
+      [ORDER_STATUS.PAID, id, ORDER_STATUS.PENDING],
+    );
+
+    if (rowCount === 0) {
+      throw new ConflictException(
+        `Order ${id} is already not ${ORDER_STATUS.PENDING}`,
+      );
+    }
+
+    return updatedOrder[0];
   }
 }

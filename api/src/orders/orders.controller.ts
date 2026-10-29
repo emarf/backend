@@ -1,4 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  ParseIntPipe,
+  Post,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/order.dto';
 
@@ -10,5 +17,11 @@ export class OrdersController {
   @Post()
   createOrder(@Body() dto: CreateOrderDto) {
     return this.ordersService.createOrder(dto);
+  }
+
+  @Post(':id/pay')
+  @HttpCode(200)
+  pay(@Param('id', ParseIntPipe) id: number) {
+    return this.ordersService.pay(id);
   }
 }

@@ -12,3 +12,10 @@ export class CreateOrderDto {
   @Max(10)
   quantity: number;
 }
+
+export const ORDER_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  CANCELLED: 'cancelled',
+  REFUNDED: 'refunded',
+} as const;
