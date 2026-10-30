@@ -1,3 +1,6 @@
 node_modules/
 dist/
 *.tsbuildinfo
+
+# Prisma Client is generated from prisma/schema.prisma: pnpm prisma generate
+/src/generated/

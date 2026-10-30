@@ -1,0 +1,92 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  city      String?
+  createdAt DateTime @map("created_at") @db.Timestamptz(6)
+  orders    Order[]
+
+  @@map("users")
+}
+
+/// CHECK (capacity > 0) lives in the SQL migration: Prisma schema cannot express CHECK constraints
+model Venue {
+  id       Int     @id @default(autoincrement())
+  name     String
+  city     String
+  capacity Int
+  events   Event[]
+
+  @@map("venues")
+}
+
+/// CHECK constraints on category and base_price live in the SQL migration
+model Event {
+  id        Int           @id @default(autoincrement())
+  venueId   Int           @map("venue_id")
+  title     String
+  category  String
+  startsAt  DateTime      @map("starts_at") @db.Timestamptz(6)
+  basePrice Decimal       @map("base_price") @db.Decimal(10, 2)
+  venue     Venue         @relation(fields: [venueId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets   Ticket[]
+  artists   EventArtist[]
+
+  @@map("events")
+}
+
+/// CHECK on status lives in the SQL migration
+model Order {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  status    String
+  createdAt DateTime  @map("created_at") @db.Timestamptz(6)
+  paidAt    DateTime? @map("paid_at") @db.Timestamptz(6)
+  user      User      @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets   Ticket[]
+
+  @@map("orders")
+}
+
+model Ticket {
+  id      Int     @id @default(autoincrement())
+  orderId Int     @map("order_id")
+  eventId Int     @map("event_id")
+  seatNo  Int     @map("seat_no")
+  price   Decimal @db.Decimal(10, 2)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([eventId, seatNo])
+  @@map("tickets")
+}
+
+model Artist {
+  id     Int           @id @default(autoincrement())
+  name   String        @unique
+  events EventArtist[]
+
+  @@map("artists")
+}
+
+/// N:M join table: an event has many artists, an artist plays many events
+model EventArtist {
+  eventId  Int    @map("event_id")
+  artistId Int    @map("artist_id")
+  event    Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  artist   Artist @relation(fields: [artistId], references: [id], onDelete: Restrict)
+
+  @@id([eventId, artistId])
+  @@index([artistId])
+  @@map("event_artists")
+}

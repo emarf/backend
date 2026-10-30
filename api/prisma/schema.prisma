@@ -1,0 +1,11 @@
+// Module 2, task 01: `pnpm prisma db pull` fills this file with models from the existing database
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}

@@ -7,9 +7,12 @@
     "db:down": "docker compose down",
     "db:reset": "docker compose down -v && docker compose up -d --wait",
     "db:psql": "docker compose exec postgres psql -U app -d tickets",
+    "db:migrate": "node tools/migrate.ts",
+    "prisma": "pnpm --filter tickets-api exec prisma",
     "check:sql": "node tools/check-sql.ts",
     "api:dev": "pnpm --filter tickets-api start:dev",
     "test:api": "pnpm --filter tickets-api test:e2e",
+    "test:schema": "pnpm --filter tickets-api test:schema",
     "format": "prettier --write \"api/**/*.ts\" \"tools/**/*.ts\"",
     "format:check": "prettier --check \"api/**/*.ts\" \"tools/**/*.ts\""
   },
