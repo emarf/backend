@@ -1,15 +1,14 @@
 import { INestApplication } from '@nestjs/common';
+import { Pool } from 'pg';
 import request from 'supertest';
+import { PrismaService } from '../../src/database/prisma.service';
 import { UsersService } from '../../src/users/users.service';
 import { createTestApp } from '../utils';
 
-// Which classes a service asks for in its constructor (Nest reads the same metadata for DI)
+// Which classes a service asks for in its constructor (Nest reads the same metadata for DI).
+// Compared by identity, not by name: the class exported as `Pool` from 'pg' is named BoundPool
 const dependenciesOf = (service: abstract new (...args: never[]) => unknown) =>
-  (
-    (Reflect.getMetadata('design:paramtypes', service) ?? []) as {
-      name: string;
-    }[]
-  ).map((type) => type.name);
+  (Reflect.getMetadata('design:paramtypes', service) ?? []) as unknown[];
 
 describe('03 · Prisma inside Nest: users', () => {
   let app: INestApplication;
@@ -24,8 +23,8 @@ describe('03 · Prisma inside Nest: users', () => {
 
   it('UsersService gets PrismaService instead of the pg Pool', () => {
     const deps = dependenciesOf(UsersService);
-    expect(deps).toContain('PrismaService');
-    expect(deps).not.toContain('Pool');
+    expect(deps).toContain(PrismaService);
+    expect(deps).not.toContain(Pool);
   });
 
   it('GET /users/:id/orders still works', async () => {

@@ -3,63 +3,33 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DatabaseError, Pool } from 'pg';
-import { CreateUserDto, UserDto } from './dto/user.dto';
+import { PrismaService } from '../database/prisma.service';
+import { Prisma } from '../generated/prisma/client';
 import { UserOrder } from './dto/order.dto';
-
-interface RawUser {
-  id: number;
-  email: string;
-  name: string;
-  city: string | null;
-  created_at: Date;
-}
-
-interface RawUserOrderBase {
-  id: number;
-  status: string;
-  created_at: Date;
-  total: string;
-}
-
-type RawOrderTicket =
-  | {
-      ticket_id: number;
-      event_id: number;
-      seat_no: number;
-      price: string;
-    }
-  | { ticket_id: null; event_id: null; seat_no: null; price: null };
-
-type RawUserOrder = RawUserOrderBase & RawOrderTicket;
+import { CreateUserDto, UserDto } from './dto/user.dto';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
 export class UsersService {
-  constructor(private readonly db: Pool) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create({ email, name, city }: CreateUserDto): Promise<UserDto> {
     try {
-      const { rows } = await this.db.query<RawUser>(
-        `
-      insert into users (email, name, city, created_at)
-      values ($1, $2, $3, now())
-      returning id, email, name, city, created_at;
-      `,
-        [email, name, city ?? null],
-      );
-
-      const row = rows[0];
-
-      return {
-        id: row.id,
-        email: row.email,
-        name: row.name,
-        city: row.city,
-        createdAt: row.created_at,
-      };
+      return await this.prisma.user.create({
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          city: true,
+          createdAt: true,
+        },
+        data: { email, name, city, createdAt: new Date() },
+      });
     } catch (error) {
-      if (error instanceof DatabaseError && error.code === '23505') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(`Email ${email} is already taken`);
       }
       throw error;
@@ -67,58 +37,34 @@ export class UsersService {
   }
 
   async getUserOrders(id: number): Promise<UserOrder[]> {
-    const { rows: userRows } = await this.db.query(
-      `
-      select 1 from users u
-      where u.id = $1;
-      `,
-      [id],
-    );
+    const user = await this.prisma.user.findUnique({
+      select: { id: true },
+      where: { id },
+    });
 
-    if (userRows.length === 0) {
+    if (!user) {
       throw new NotFoundException(`No user with id ${id}`);
     }
 
-    const { rows } = await this.db.query<RawUserOrder>(
-      `
-      select o.id, o.status, o.created_at, coalesce(sum(t.price) over (partition by o.id), 0) as total,
-             t.id as ticket_id, t.event_id, t.seat_no, t.price
-      from orders o
-      left join tickets t
-      on o.id = t.order_id
-      where o.user_id = $1
-      order by o.created_at desc, o.id desc, t.id
-      `,
-      [id],
-    );
-
-    const hashMap: Map<number, UserOrder> = new Map();
-
-    rows.forEach((row) => {
-      let order = hashMap.get(row.id);
-
-      if (!order) {
-        order = {
-          id: row.id,
-          status: row.status,
-          createdAt: row.created_at,
-          total: parseFloat(row.total),
-          tickets: [],
-        };
-
-        hashMap.set(row.id, order);
-      }
-
-      if (row.ticket_id !== null) {
-        order.tickets.push({
-          id: row.ticket_id,
-          eventId: row.event_id,
-          seatNo: row.seat_no,
-          price: parseFloat(row.price),
-        });
-      }
+    const orders = await this.prisma.order.findMany({
+      where: { userId: id },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      include: { tickets: { orderBy: { id: 'asc' } } },
     });
 
-    return [...hashMap.values()];
+    return orders.map((order) => ({
+      id: order.id,
+      status: order.status,
+      createdAt: order.createdAt,
+      total: order.tickets
+        .reduce((acc, { price }) => acc.add(price), new Prisma.Decimal(0))
+        .toNumber(),
+      tickets: order.tickets.map((ticket) => ({
+        id: ticket.id,
+        eventId: ticket.eventId,
+        seatNo: ticket.seatNo,
+        price: ticket.price.toNumber(),
+      })),
+    }));
   }
 }

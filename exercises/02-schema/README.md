@@ -42,12 +42,9 @@ tools/migrate.ts          pnpm db:migrate: applies the migrations to a database 
 never repeats. Sometimes a pair of columns is the key: a link "event 1 ↔ artist 5" is identified
 by both ids together (task 06).
 
-**Foreign key** — `orders.user_id REFERENCES users (id)`: the database refuses an order for a user
-that does not exist. Your JS code can have bugs; the foreign key cannot be forgotten.
+**Foreign key** — `orders.user_id REFERENCES users (id)`: the database refuses an order for a user that does not exist. Your JS code can have bugs; the foreign key cannot be forgotten.
 
-**Constraints** — `NOT NULL`, `UNIQUE`, `CHECK (capacity > 0)`. Validation in a DTO protects one
-endpoint. A constraint protects the data from every endpoint, script, migration and colleague
-with `psql`. Keep both: the DTO gives a friendly 400, the constraint is the last line of defence.
+**Constraints** — `NOT NULL`, `UNIQUE`, `CHECK (capacity > 0)`. Validation in a DTO protects one endpoint. A constraint protects the data from every endpoint, script, migration and colleague with `psql`. Keep both: the DTO gives a friendly 400, the constraint is the last line of defence.
 
 **Normalization** — every fact is stored in one place. The city of an event is not a column of
 `events`: it is the city of its venue, so `events` keeps only `venue_id`, and your `city` filter in
@@ -61,7 +58,7 @@ table can hold the other's id, so a third table holds the pairs — a join table
 **ON DELETE** — what happens to `tickets` when their `order` is deleted:
 
 | option | what happens | use it when |
-|---|---|---|
+| --- | --- | --- |
 | `NO ACTION` / `RESTRICT` (default) | the delete fails while children exist | children are valuable on their own: orders of a user |
 | `CASCADE` | children are deleted too | children make no sense without the parent: tickets of an order |
 | `SET NULL` | children stay, the link becomes `NULL` | the link is optional: an event whose promoter left |
@@ -111,9 +108,11 @@ Let Prisma read the existing tables: `pnpm prisma db pull`. Look at what it wrot
 `schema.prisma`, then make it pleasant to use from TypeScript:
 
 - Models in PascalCase, singular: `User`, `Venue`, `Event`, `Order`, `Ticket`.
-  Each model still points to its table: `@@map("users")`.
+  `db pull` does not write `@@map` — the names match. Once you rename a model, add
+  `@@map("users")` yourself, so the model still points to its table.
 - Fields in camelCase: `createdAt`, `venueId`, `startsAt`, `basePrice`, `userId`, `orderId`,
-  `eventId`, `seatNo`. Each still points to its column: `@map("created_at")`.
+  `eventId`, `seatNo`. Same for columns: add `@map("created_at")` to every renamed field.
+- `pnpm prisma format` aligns the file and checks it for errors — run it after editing.
 - Relation fields named by meaning: `event.venue` (one), `venue.events`, `user.orders`,
   `order.tickets` (many), `ticket.order`, `ticket.event`.
 
@@ -148,9 +147,11 @@ migration history must be able to rebuild the database from zero.
 
 1. Create `PrismaService` in `api/src/database/`: a class that extends the generated
    `PrismaClient` and connects through the `pg` driver adapter:
+
    ```ts
    super({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL ?? '...' }) })
    ```
+
    Close the connections when the app stops (`onModuleDestroy` → `$disconnect()`).
    Provide and export it from `DatabaseModule`, next to `Pool`.
 2. Rewrite `UsersService` with Prisma: `POST /users` and `GET /users/:id/orders`. It should not

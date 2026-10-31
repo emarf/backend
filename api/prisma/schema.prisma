@@ -1,5 +1,3 @@
-// Module 2, task 01: `pnpm prisma db pull` fills this file with models from the existing database
-
 generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
@@ -8,4 +6,65 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Event {
+  id        Int      @id @default(autoincrement())
+  venueId   Int      @map("venue_id")
+  title     String
+  category  String
+  startsAt  DateTime @map("starts_at") @db.Timestamptz(6)
+  basePrice Decimal  @map("base_price") @db.Decimal(10, 2)
+  venue     Venue    @relation(fields: [venueId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets   Ticket[]
+
+  @@map("events")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Order {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  status    String
+  createdAt DateTime @map("created_at") @db.Timestamptz(6)
+  user      User     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  tickets   Ticket[]
+
+  @@map("orders")
+}
+
+model Ticket {
+  id      Int     @id @default(autoincrement())
+  orderId Int     @map("order_id")
+  eventId Int     @map("event_id")
+  seatNo  Int     @map("seat_no")
+  price   Decimal @db.Decimal(10, 2)
+  event   Event   @relation(fields: [eventId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([eventId, seatNo])
+  @@map("tickets")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String
+  city      String?
+  createdAt DateTime @map("created_at") @db.Timestamptz(6)
+  orders    Order[]
+
+  @@map("users")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Venue {
+  id       Int     @id @default(autoincrement())
+  name     String
+  city     String
+  capacity Int
+  events   Event[]
+
+  @@map("venues")
 }
