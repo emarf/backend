@@ -183,15 +183,12 @@ happens to `ALTER TABLE ... ADD CONSTRAINT` if the table already contains a row 
 
 ### 05 · What happens on DELETE
 
-A ticket cannot exist without its order: deleting an order must delete its tickets. But nothing
-else must cascade — a user who has orders and an event that has sold tickets must still be
-impossible to delete.
+A ticket cannot exist without its order: deleting an order must delete its tickets. But nothing else must cascade — a user who has orders and an event that has sold tickets must still be impossible to delete.
 
 This time Prisma schema can describe the change (`onDelete` in `@relation`), so
 `pnpm prisma migrate dev --name <name>` writes the migration for you. Read the SQL it generated.
 
-Learn: `CASCADE` vs `RESTRICT`, and why you almost never cascade from a user or a payment:
-orders are financial records, they outlive the account.
+Learn: `CASCADE` vs `RESTRICT`, and why you almost never cascade from a user or a payment: orders are financial records, they outlive the account.
 
 ### 06 · Many-to-many: events and artists
 
