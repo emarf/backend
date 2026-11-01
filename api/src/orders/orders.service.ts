@@ -5,11 +5,15 @@ import {
 } from '@nestjs/common';
 import { Pool } from 'pg';
 import { CreateOrderDto, ORDER_STATUS } from './dto/order.dto';
+import { PrismaService } from '../database/prisma.service';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
 export class OrdersService {
-  constructor(private readonly db: Pool) {}
+  constructor(
+    private readonly db: Pool,
+    private readonly prisma: PrismaService,
+  ) {}
 
   async createOrder(dto: CreateOrderDto) {
     const client = await this.db.connect();
@@ -128,36 +132,24 @@ export class OrdersService {
   }
 
   async pay(id: number) {
-    const { rows } = await this.db.query(
-      `
-      select 1 from orders o
-      where o.id = $1
-      `,
-      [id],
-    );
+    const { count } = await this.prisma.order.updateMany({
+      data: { status: ORDER_STATUS.PAID, paidAt: new Date() },
+      where: { id, status: ORDER_STATUS.PENDING },
+    });
 
-    const row = rows[0];
+    if (count) return { id, status: ORDER_STATUS.PAID };
 
-    if (!row) {
+    const order = await this.prisma.order.findUnique({
+      select: { id: true },
+      where: { id },
+    });
+
+    if (!order) {
       throw new NotFoundException(`No order with id ${id}`);
     }
 
-    const { rows: updatedOrder, rowCount } = await this.db.query(
-      `
-      update orders
-      set status = $1
-      where id = $2 and status = $3
-      returning id, status
-      `,
-      [ORDER_STATUS.PAID, id, ORDER_STATUS.PENDING],
+    throw new ConflictException(
+      `Order ${id} is already not ${ORDER_STATUS.PENDING}`,
     );
-
-    if (rowCount === 0) {
-      throw new ConflictException(
-        `Order ${id} is already not ${ORDER_STATUS.PENDING}`,
-      );
-    }
-
-    return updatedOrder[0];
   }
 }
