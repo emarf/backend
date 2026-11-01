@@ -3,132 +3,95 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Pool } from 'pg';
-import { CreateOrderDto, ORDER_STATUS } from './dto/order.dto';
 import { PrismaService } from '../database/prisma.service';
+import { Prisma } from '../generated/prisma/client';
+import { CreateOrderDto, ORDER_STATUS } from './dto/order.dto';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
 export class OrdersService {
-  constructor(
-    private readonly db: Pool,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async createOrder(dto: CreateOrderDto) {
-    const client = await this.db.connect();
+    return await this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        select: { id: true },
+        where: { id: dto.userId },
+      });
 
-    try {
-      await client.query('begin');
-
-      const { rows: userRows } = await client.query(
-        `
-      select 1 from users u
-      where u.id = $1;
-      `,
-        [dto.userId],
-      );
-
-      if (userRows.length === 0) {
+      if (!user) {
         throw new NotFoundException(`No user with id ${dto.userId}`);
       }
 
-      const { rows: eventRows } = await client.query<{
-        base_price: string;
-        capacity: number;
-      }>(
-        `
-      select e.base_price, v.capacity 
-      from events e
-      join venues v
-      on e.venue_id = v.id 
-      where e.id = $1
-      `,
-        [dto.eventId],
-      );
+      const [event] = await tx.$queryRaw<
+        {
+          base_price: Prisma.Decimal;
+          capacity: number;
+        }[]
+      >`
+        select e.base_price, v.capacity
+        from events e
+        join venues v
+        on e.venue_id = v.id
+        where e.id = ${dto.eventId}
+        for update of e
+        `;
 
-      if (eventRows.length === 0) {
+      if (!event) {
         throw new NotFoundException(`No event with id ${dto.eventId}`);
       }
 
-      const { rows: rowsCounters } = await client.query<{
-        taken: number;
-        max_seat: number;
-      }>(
-        `
-      select (count(*) filter(where o.status in ('paid', 'pending')))::int as taken, 
-              coalesce(max(t.seat_no), 0) as max_seat
-      from events e
-      left join tickets t
-      on e.id = t.event_id
-      left join orders o
-      on o.id = t.order_id
-      where e.id = $1
-      `,
-        [dto.eventId],
-      );
+      const taken = await tx.ticket.count({
+        where: {
+          eventId: dto.eventId,
+          order: { status: { in: ['paid', 'pending'] } },
+        },
+      });
 
-      const { capacity, base_price } = eventRows[0];
-      const { taken, max_seat } = rowsCounters[0];
-
-      if (capacity - taken < dto.quantity) {
+      if (event.capacity - taken < dto.quantity) {
         throw new ConflictException(`Not enough empty seats`);
       }
 
-      const { rows: orderRows } = await client.query<{
-        id: number;
-        user_id: number;
-        status: string;
-      }>(
-        `
-      insert into orders(user_id, status, created_at)
-      values ($1, 'pending', now())
-      returning id, user_id, status
-      `,
-        [dto.userId],
-      );
-
-      const { rows } = await client.query<{
-        id: number;
-        event_id: number;
-        seat_no: number;
-        price: string;
-      }>(
-        `
-        insert into tickets(order_id, event_id, seat_no, price)
-        select $1, $2, $3 + n, $4 from generate_series(1, $5) as n
-        returning id, event_id, seat_no, price
-        `,
-        [orderRows[0].id, dto.eventId, max_seat, base_price, dto.quantity],
-      );
-
-      const tickets = rows.map((row) => {
-        const { id, event_id, seat_no, price } = row;
-        return {
-          id,
-          eventId: event_id,
-          seatNo: seat_no,
-          price: parseFloat(price),
-        };
+      const last = await tx.ticket.aggregate({
+        where: { eventId: dto.eventId },
+        _max: { seatNo: true },
       });
 
-      await client.query('commit');
+      const lastSeat = last._max.seatNo ?? 0;
 
-      const { id, user_id, status } = orderRows[0];
+      const order = await tx.order.create({
+        select: { id: true, userId: true, status: true, tickets: true },
+        data: {
+          userId: dto.userId,
+          status: 'pending',
+          createdAt: new Date(),
+          tickets: {
+            createMany: {
+              data: Array.from({ length: dto.quantity }, (_, i) => ({
+                eventId: dto.eventId,
+                seatNo: lastSeat + i + 1,
+                price: event.base_price,
+              })),
+            },
+          },
+        },
+      });
 
       return {
-        id,
-        userId: user_id,
-        status,
-        total: tickets.reduce((acc, { price }) => acc + price, 0),
-        tickets,
+        id: order.id,
+        userId: order.userId,
+        status: order.status,
+        total: order.tickets
+          .reduce((acc, { price }) => acc.add(price), new Prisma.Decimal(0))
+          .toNumber(),
+        tickets: order.tickets.map((ticket) => ({
+          id: ticket.id,
+          eventId: ticket.eventId,
+          seatNo: ticket.seatNo,
+          price: ticket.price.toNumber(),
+        })),
       };
-    } catch (error) {
-      await client.query('rollback');
-      throw error;
-    } finally {
-      client.release();
-    }
+    });
   }
 
   async pay(id: number) {

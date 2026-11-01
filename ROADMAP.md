@@ -21,7 +21,7 @@ Each module = theory + tasks + automated checks. You write the code, I review it
 - Window functions (`ROW_NUMBER`, `SUM() OVER`, `LAG`)
 - 📁 `exercises/01-sql` (tasks 15–22: extra practice — keep solving them alongside module 3)
 
-## Module 2. Schema design, migrations and Prisma (you are here)
+## Module 2. Schema design, migrations and Prisma ✅
 
 - Primary/foreign keys, constraints (`UNIQUE`, `CHECK`, `NOT NULL`), `ON DELETE`
 - Normalization, 1:N and N:M relationships
