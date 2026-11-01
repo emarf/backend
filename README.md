@@ -18,6 +18,8 @@ The module-by-module plan is in [ROADMAP.md](ROADMAP.md).
 api/            the NestJS API you build in module 3; api/prisma — schema and migrations (module 2)
 db/init/        schema and test data (run on the container's first start)
 exercises/      tasks by module; SQL solutions go here
-solutions/      reference solutions — look only after writing your own
 tools/          checkers
 ```
+
+Reference solutions live on a separate `solutions` branch, out of sight on purpose. To read one
+file after your own version passes: `git show solutions:solutions/03-api/src/orders/orders.service.ts`.

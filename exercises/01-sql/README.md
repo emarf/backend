@@ -20,8 +20,8 @@ and rolls it back, so you cannot damage the data.
 Useful in `psql`: `\dt` — list tables, `\d orders` — table structure,
 `\x` — vertical output for wide rows, `\q` — quit.
 
-Stuck? Ask me and we'll work through it. Reference solutions live in `solutions/`, but open them
-only after your own version passes the check — then you can compare approaches.
+Stuck? Ask me and we'll work through it. Reference solutions live on the `solutions` branch (see the root
+README), but open them only after your own version passes the check — then compare approaches.
 
 ## Data
 

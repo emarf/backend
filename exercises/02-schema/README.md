@@ -25,7 +25,7 @@ also works in the tests.
 Workflow for each task: read the task and its test file in `api/test/schema/`, make the
 change, run `pnpm test:schema NN` and `pnpm test:api`.
 
-Reference solutions are in [`solutions/02-schema/`](../../solutions/02-schema). Open them only
+Reference solutions are on the `solutions` branch, in `solutions/02-schema/`. Open them only
 after your version passes.
 
 ## What is already there

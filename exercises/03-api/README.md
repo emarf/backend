@@ -27,7 +27,7 @@ Workflow for each task:
 2. Try the endpoint by hand while you build it: in the browser, `curl`, or Postman / Bruno.
 3. Run `pnpm test:api NN` until it is green.
 
-Reference solutions are in [`solutions/03-api/`](../../solutions/03-api). Open them only after
+Reference solutions are on the `solutions` branch, in `solutions/03-api/`. Open them only after
 your version passes — then compare approaches.
 
 ## What is already there
