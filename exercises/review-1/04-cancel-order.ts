@@ -5,5 +5,23 @@ export async function cancelOrder(
   prisma: PrismaClient,
   id: number,
 ): Promise<'cancelled' | 'not_found' | 'not_pending'> {
-  throw new Error('Task 04 is not done yet');
+  const { count } = await prisma.order.updateMany({
+    data: { status: 'cancelled' },
+    where: { id, status: 'pending' },
+  });
+
+  if (count) {
+    return 'cancelled';
+  }
+
+  const order = await prisma.order.findUnique({
+    select: { id: true },
+    where: { id },
+  });
+
+  if (!order) {
+    return 'not_found';
+  }
+
+  return 'not_pending';
 }
