@@ -13,6 +13,8 @@
     "api:dev": "pnpm --filter tickets-api start:dev",
     "test:api": "pnpm --filter tickets-api test:e2e",
     "test:schema": "pnpm --filter tickets-api test:schema",
+    "test:review": "pnpm --filter tickets-api test:review",
+    "test:auth": "pnpm --filter tickets-api test:auth",
     "format": "prettier --write \"api/**/*.ts\" \"tools/**/*.ts\"",
     "format:check": "prettier --check \"api/**/*.ts\" \"tools/**/*.ts\""
   },

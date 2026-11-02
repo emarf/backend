@@ -1,0 +1,1 @@
+-- Task 01. Write one INSERT here. Parameters: $1 order id, $2 event id, $3 how many tickets.

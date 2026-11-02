@@ -1,0 +1,1 @@
+-- Task 02. Write one ALTER TABLE ... ADD CONSTRAINT here.

@@ -37,11 +37,17 @@ Each module = theory + tasks + automated checks. You write the code, I review it
 - Database access: raw SQL via `pg` — the ORM comes in module 2, so you understand what it does under the hood
 - 📁 `exercises/03-api`, code in `api/`
 
-## Module 4. Authentication and security
+## Review 1 (you are here)
+
+- Five short tasks that repeat the hard parts of modules 1–3 from a different angle
+- 📁 `exercises/review-1`, checks in `api/test/review` (`pnpm test:review`)
+
+## Module 4. Authentication and security (next)
 
 - Password hashing, sessions vs JWT, refresh tokens
 - Where to store a token and why httpOnly cookies
 - CORS, CSRF, SQL injection — break it, then fix it
+- 📁 `exercises/04-auth`, checks in `api/test/auth` (`pnpm test:auth`)
 
 ## Module 5. Indexes and database performance
 
