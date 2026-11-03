@@ -50,12 +50,13 @@ model Ticket {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  city      String?
-  createdAt DateTime @map("created_at") @db.Timestamptz(6)
-  orders    Order[]
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  city         String?
+  createdAt    DateTime @map("created_at") @db.Timestamptz(6)
+  orders       Order[]
+  passwordHash String? @map("password_hash")
 
   @@map("users")
 }

@@ -5,15 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { Prisma } from '../generated/prisma/client';
-import { UserOrder } from './dto/order.dto';
-import { CreateUserDto, UserDto } from './dto/user.dto';
+import { CreateUserDto } from './dto/user.dto';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ email, name, city }: CreateUserDto): Promise<UserDto> {
+  async create({ email, name, city }: CreateUserDto, hash?: string) {
     try {
       return await this.prisma.user.create({
         select: {
@@ -23,7 +22,7 @@ export class UsersService {
           city: true,
           createdAt: true,
         },
-        data: { email, name, city, createdAt: new Date() },
+        data: { email, name, city, createdAt: new Date(), passwordHash: hash },
       });
     } catch (error) {
       if (
@@ -36,7 +35,7 @@ export class UsersService {
     }
   }
 
-  async getUserOrders(id: number): Promise<UserOrder[]> {
+  async getUserOrders(id: number) {
     const user = await this.prisma.user.findUnique({
       select: { id: true },
       where: { id },

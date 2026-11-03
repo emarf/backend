@@ -1,0 +1,41 @@
+import { Injectable } from '@nestjs/common';
+import crypto from 'crypto';
+import { PrismaService } from '../database/prisma.service';
+import { UsersService } from '../users/users.service';
+import { RegisterDto } from './dto/auth.dto';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly usersService: UsersService,
+  ) {}
+
+  hash(password: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const salt = crypto.randomBytes(16).toString('hex');
+
+      crypto.scrypt(password, salt, 64, (err, derivedKey) => {
+        if (err) return reject(err);
+        resolve(salt + ':' + derivedKey.toString('hex'));
+      });
+    });
+  }
+
+  verify(password: string, hash: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const [salt, key] = hash.split(':');
+      const expected = Buffer.from(key, 'hex');
+
+      crypto.scrypt(password, salt, expected.length, (err, derivedKey) => {
+        if (err) return reject(err);
+        resolve(crypto.timingSafeEqual(expected, derivedKey));
+      });
+    });
+  }
+
+  async register({ email, name, password, ...rest }: RegisterDto) {
+    const hash = await this.hash(password);
+    return this.usersService.create({ email, name, ...rest }, hash);
+  }
+}

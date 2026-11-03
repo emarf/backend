@@ -41,6 +41,7 @@ fails). Authorization answers *are you allowed to do this* (someone else's order
 
 **Never store a password, store a hash.** A hash is one-way: from the hash you cannot get the
 password back, but you can check a guess. Two more rules make it work:
+
 - *salt* — random bytes mixed into every hash, stored next to it. Without salt, two users with
   the password `qwerty123` have the same hash, and one precomputed table cracks every database.
 - *slow* — a password hash must be deliberately expensive (`scrypt`, `bcrypt`, `argon2`), so an
@@ -48,6 +49,7 @@ password back, but you can check a guess. Two more rules make it work:
   why `sha256(password)` is wrong for passwords.
 
 **Session vs token.** After login the server must recognise the user on every next request.
+
 - *Session*: the server creates a random id, stores it in the database, and gives it to the
   browser in a cookie. Every request → look up the id. Logout = delete the row, instantly.
 - *JWT*: the server signs `{ sub: userId, exp }` with a secret and gives it to the client. Every

@@ -16,11 +16,3 @@ export class CreateUserDto {
   @IsString()
   city?: string;
 }
-
-export interface UserDto {
-  id: number;
-  email: string;
-  name: string;
-  city: string | null;
-  createdAt: Date;
-}

@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/user.dto';
 import { UsersService } from './users.service';
-import { UserOrder } from './dto/order.dto';
 
 // The controller only deals with HTTP: which URL, which method, what goes in and out.
 @Controller('users')
@@ -21,7 +20,7 @@ export class UsersController {
   }
 
   @Get(':id/orders')
-  getUserOrders(@Param('id', ParseIntPipe) id: number): Promise<UserOrder[]> {
+  getUserOrders(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.getUserOrders(id);
   }
 }
