@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import crypto from 'crypto';
 import { PrismaService } from '../database/prisma.service';
 import { UsersService } from '../users/users.service';
-import { RegisterDto } from './dto/auth.dto';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
+import { DUMMY_HASH, SESSION_TTL_MS } from './constants';
 
 @Injectable()
 export class AuthService {
@@ -37,5 +38,36 @@ export class AuthService {
   async register({ email, name, password, ...rest }: RegisterDto) {
     const hash = await this.hash(password);
     return this.usersService.create({ email, name, ...rest }, hash);
+  }
+
+  async login(dto: LoginDto) {
+    const user = await this.usersService.findByEmailWithPasswordHash(dto.email);
+
+    const isHashValid = await this.verify(
+      dto.password,
+      user?.passwordHash ?? DUMMY_HASH,
+    );
+
+    if (!user || !user.passwordHash || !isHashValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const { passwordHash, ...safeUser } = user;
+
+    const tokenSID = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(tokenSID)
+      .digest('hex');
+    const tokenExpiresDate = new Date(Date.now() + SESSION_TTL_MS);
+
+    await this.prisma.session.create({
+      data: { userId: safeUser.id, tokenHash, expiresAt: tokenExpiresDate },
+    });
+
+    return {
+      user: safeUser,
+      token: tokenSID,
+    };
   }
 }

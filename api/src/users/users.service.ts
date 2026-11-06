@@ -6,6 +6,7 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/user.dto';
+import { USER_SELECT } from './constants/indext';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
@@ -15,13 +16,7 @@ export class UsersService {
   async create({ email, name, city }: CreateUserDto, hash?: string) {
     try {
       return await this.prisma.user.create({
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          city: true,
-          createdAt: true,
-        },
+        select: USER_SELECT,
         data: { email, name, city, createdAt: new Date(), passwordHash: hash },
       });
     } catch (error) {
@@ -65,5 +60,15 @@ export class UsersService {
         price: ticket.price.toNumber(),
       })),
     }));
+  }
+
+  async findByEmailWithPasswordHash(email: string) {
+    return this.prisma.user.findUnique({
+      select: {
+        ...USER_SELECT,
+        passwordHash: true,
+      },
+      where: { email },
+    });
   }
 }
