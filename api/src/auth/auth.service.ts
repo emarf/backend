@@ -4,6 +4,7 @@ import { PrismaService } from '../database/prisma.service';
 import { UsersService } from '../users/users.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { DUMMY_HASH, SESSION_TTL_MS } from './constants';
+import { USER_SELECT } from '../users/public-user';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,7 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  hash(password: string): Promise<string> {
+  private hash(password: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const salt = crypto.randomBytes(16).toString('hex');
 
@@ -23,7 +24,7 @@ export class AuthService {
     });
   }
 
-  verify(password: string, hash: string): Promise<boolean> {
+  private verify(password: string, hash: string): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const [salt, key] = hash.split(':');
       const expected = Buffer.from(key, 'hex');
@@ -33,6 +34,10 @@ export class AuthService {
         resolve(crypto.timingSafeEqual(expected, derivedKey));
       });
     });
+  }
+
+  private hashToken(token: string) {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   async register({ email, name, password, ...rest }: RegisterDto) {
@@ -54,11 +59,8 @@ export class AuthService {
 
     const { passwordHash, ...safeUser } = user;
 
-    const tokenSID = crypto.randomBytes(32).toString('base64url');
-    const tokenHash = crypto
-      .createHash('sha256')
-      .update(tokenSID)
-      .digest('hex');
+    const token = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = this.hashToken(token);
     const tokenExpiresDate = new Date(Date.now() + SESSION_TTL_MS);
 
     await this.prisma.session.create({
@@ -67,7 +69,16 @@ export class AuthService {
 
     return {
       user: safeUser,
-      token: tokenSID,
+      token,
     };
+  }
+
+  async findSessionByToken(token: string) {
+    const tokenHash = this.hashToken(token);
+
+    return this.prisma.session.findUnique({
+      select: { expiresAt: true, user: { select: USER_SELECT } },
+      where: { tokenHash, expiresAt: { gt: new Date() } },
+    });
   }
 }

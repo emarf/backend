@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../database/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/user.dto';
-import { USER_SELECT } from './constants/indext';
+import { USER_SELECT } from './public-user';
 
 // The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()

@@ -1,8 +1,19 @@
-import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
+import { PublicUser } from '../users/public-user';
+import { AuthGuard } from './auth.guard';
+import { AuthService } from './auth.service';
 import { SESSION_TTL_MS } from './constants';
+import { CurrentUser } from './current-user.decorator';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -28,6 +39,12 @@ export class AuthController {
       maxAge: SESSION_TTL_MS,
     });
 
+    return user;
+  }
+
+  @Get('/me')
+  @UseGuards(AuthGuard)
+  me(@CurrentUser() user: PublicUser) {
     return user;
   }
 }
