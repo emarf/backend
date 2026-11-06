@@ -4,14 +4,15 @@ import {
   Get,
   HttpCode,
   Post,
+  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { PublicUser } from '../users/public-user';
 import { AuthGuard } from './auth.guard';
 import { AuthService } from './auth.service';
-import { SESSION_TTL_MS } from './constants';
+import { COOKIE_OPTIONS, SESSION_TTL_MS } from './constants';
 import { CurrentUser } from './current-user.decorator';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 
@@ -32,12 +33,7 @@ export class AuthController {
   ) {
     const { user, token } = await this.authService.login(dto);
 
-    res.cookie('sid', token, {
-      httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
-      maxAge: SESSION_TTL_MS,
-    });
+    res.cookie('sid', token, { ...COOKIE_OPTIONS, maxAge: SESSION_TTL_MS });
 
     return user;
   }
@@ -46,5 +42,15 @@ export class AuthController {
   @UseGuards(AuthGuard)
   me(@CurrentUser() user: PublicUser) {
     return user;
+  }
+
+  @Post('/logout')
+  @HttpCode(204)
+  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = req.cookies?.sid;
+
+    await this.authService.logout(token);
+
+    res.clearCookie('sid', COOKIE_OPTIONS);
   }
 }

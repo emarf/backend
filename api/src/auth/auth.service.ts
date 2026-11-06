@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import crypto from 'crypto';
 import { PrismaService } from '../database/prisma.service';
-import { UsersService } from '../users/users.service';
-import { LoginDto, RegisterDto } from './dto/auth.dto';
-import { DUMMY_HASH, SESSION_TTL_MS } from './constants';
 import { USER_SELECT } from '../users/public-user';
+import { UsersService } from '../users/users.service';
+import { DUMMY_HASH, SESSION_TTL_MS } from './constants';
+import { LoginDto, RegisterDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -80,5 +80,21 @@ export class AuthService {
       select: { expiresAt: true, user: { select: USER_SELECT } },
       where: { tokenHash, expiresAt: { gt: new Date() } },
     });
+  }
+
+  async logout(token: string | undefined) {
+    if (!token) {
+      throw new UnauthorizedException('Not authenticated');
+    }
+
+    const tokenHash = this.hashToken(token);
+
+    const { count } = await this.prisma.session.deleteMany({
+      where: { tokenHash, expiresAt: { gt: new Date() } },
+    });
+
+    if (!count) {
+      throw new UnauthorizedException('Not authenticated');
+    }
   }
 }

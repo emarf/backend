@@ -8,3 +8,8 @@ Content-Type: application/json
 
 ###
 GET http://localhost:3000/auth/me
+
+###
+
+POST http://localhost:3000/auth/logout
+Content-Type: application/json
