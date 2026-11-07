@@ -1,7 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { Venue, VenuesService } from './venues.service';
+import { Public } from '../auth/public.decorator';
 
-// The controller only deals with HTTP: which URL, which method, what goes in and out.
+@Public()
 @Controller('venues')
 export class VenuesController {
   constructor(private readonly venuesService: VenuesService) {}

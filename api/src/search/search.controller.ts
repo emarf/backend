@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { SearchService } from './search.service';
+import { Public } from '../auth/public.decorator';
 
+@Public()
 @Controller('search')
 export class SearchController {
   constructor(private readonly searchService: SearchService) {}

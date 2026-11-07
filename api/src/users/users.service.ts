@@ -7,8 +7,8 @@ import { PrismaService } from '../database/prisma.service';
 import { Prisma } from '../generated/prisma/client';
 import { CreateUserDto } from './dto/user.dto';
 import { USER_SELECT } from './public-user';
+import { ORDER_WITH_TICKETS, toUserOrder } from './user-order';
 
-// The service holds the logic and talks to the database. It knows nothing about HTTP.
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
@@ -43,23 +43,23 @@ export class UsersService {
     const orders = await this.prisma.order.findMany({
       where: { userId: id },
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      include: { tickets: { orderBy: { id: 'asc' } } },
+      include: ORDER_WITH_TICKETS,
     });
 
-    return orders.map((order) => ({
-      id: order.id,
-      status: order.status,
-      createdAt: order.createdAt,
-      total: order.tickets
-        .reduce((acc, { price }) => acc.add(price), new Prisma.Decimal(0))
-        .toNumber(),
-      tickets: order.tickets.map((ticket) => ({
-        id: ticket.id,
-        eventId: ticket.eventId,
-        seatNo: ticket.seatNo,
-        price: ticket.price.toNumber(),
-      })),
-    }));
+    return orders.map(toUserOrder);
+  }
+
+  async getUserOrder(userId: number, orderId: number) {
+    const order = await this.prisma.order.findFirst({
+      where: { id: orderId, userId },
+      include: ORDER_WITH_TICKETS,
+    });
+
+    if (!order) {
+      throw new NotFoundException(`No order with id ${orderId}`);
+    }
+
+    return toUserOrder(order);
   }
 
   async findByEmailWithPasswordHash(email: string) {

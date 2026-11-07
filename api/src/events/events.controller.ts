@@ -9,7 +9,9 @@ import {
 import { ListEventsQuery } from './dto/list-events-query.dto';
 import { EventsService } from './events.service';
 import { EventsPage } from './dto/event.dto';
+import { Public } from '../auth/public.decorator';
 
+@Public()
 @Controller('events')
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
