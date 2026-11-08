@@ -5,10 +5,10 @@ import { Pool } from 'pg';
 export class SearchService {
   constructor(private readonly db: Pool) {}
 
-  // ⚠️ Vulnerable on purpose — module 4, task 08. Do not copy this pattern.
   async search(q: string): Promise<{ id: number; title: string }[]> {
     const { rows } = await this.db.query(
-      `select id, title from events where title ilike '%${q}%' order by id`,
+      `select id, title from events where title ilike $1 order by id`,
+      [`%${q}%`],
     );
     return rows;
   }
