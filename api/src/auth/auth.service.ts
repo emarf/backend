@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { PrismaService } from '../database/prisma.service';
 import { USER_SELECT } from '../users/public-user';
 import { UsersService } from '../users/users.service';
-import { DUMMY_HASH, SESSION_TTL_MS } from './constants';
+import { DUMMY_HASH, REFRESH_TOKEN_TTL_MS, SESSION_TTL_MS } from './constants';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 
 const DEV_SECRET = 'dev-only-secret';
@@ -86,6 +86,18 @@ export class AuthService {
     return crypto.createHash('sha256').update(token).digest('hex');
   }
 
+  private async generateRefreshToken(userId: number) {
+    const token = crypto.randomBytes(32).toString('base64url');
+    const tokenHash = this.hashToken(token);
+    const tokenExpiresDate = new Date(Date.now() + REFRESH_TOKEN_TTL_MS);
+
+    await this.prisma.refreshToken.create({
+      data: { tokenHash, expiresAt: tokenExpiresDate, userId },
+    });
+
+    return token;
+  }
+
   async register({ email, name, password, ...rest }: RegisterDto) {
     const hash = await this.hash(password);
     return this.usersService.create({ email, name, ...rest }, hash);
@@ -135,8 +147,10 @@ export class AuthService {
 
   async token(dto: LoginDto) {
     const user = await this.verifyUser(dto.email, dto.password);
+    const refreshToken = await this.generateRefreshToken(user.id);
 
     return {
+      refreshToken,
       accessToken: this.signJwt(user.id),
       expiresIn: TOKEN_EXPIRATION_SECONDS,
     };
@@ -163,5 +177,45 @@ export class AuthService {
     if (payload.exp <= Math.floor(new Date().getTime() / 1000)) return null;
 
     return this.usersService.getUserById(payload.sub);
+  }
+
+  async refresh(previousRefreshToken: string | undefined) {
+    if (!previousRefreshToken) {
+      throw new UnauthorizedException('Not authenticated');
+    }
+    const tokenHash = this.hashToken(previousRefreshToken);
+
+    const { count } = await this.prisma.refreshToken.updateMany({
+      where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } },
+      data: { usedAt: new Date() },
+    });
+
+    if (count === 1) {
+      const refreshToken = await this.prisma.refreshToken.findUniqueOrThrow({
+        where: { tokenHash },
+      });
+
+      const newRefreshToken = await this.generateRefreshToken(
+        refreshToken.userId,
+      );
+
+      return {
+        refreshToken: newRefreshToken,
+        accessToken: this.signJwt(refreshToken.userId),
+        expiresIn: TOKEN_EXPIRATION_SECONDS,
+      };
+    }
+
+    const refreshToken = await this.prisma.refreshToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (refreshToken?.usedAt) {
+      await this.prisma.refreshToken.deleteMany({
+        where: { userId: refreshToken.userId },
+      });
+    }
+
+    throw new UnauthorizedException('Not authenticated');
   }
 }

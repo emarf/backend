@@ -1,3 +1,4 @@
+import { REFRESH_COOKIE_OPTIONS } from './constants/index';
 import {
   Body,
   Controller,
@@ -10,7 +11,11 @@ import {
 import { Request, Response } from 'express';
 import { PublicUser } from '../users/public-user';
 import { AuthService } from './auth.service';
-import { COOKIE_OPTIONS, SESSION_TTL_MS } from './constants';
+import {
+  COOKIE_OPTIONS,
+  REFRESH_TOKEN_TTL_MS,
+  SESSION_TTL_MS,
+} from './constants';
 import { CurrentUser } from './current-user.decorator';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { Public } from './public.decorator';
@@ -58,7 +63,41 @@ export class AuthController {
   @Public()
   @Post('/token')
   @HttpCode(200)
-  async token(@Body() dto: LoginDto) {
-    return this.authService.token(dto);
+  async token(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { refreshToken, accessToken, expiresIn } =
+      await this.authService.token(dto);
+
+    res.cookie('refresh', refreshToken, REFRESH_COOKIE_OPTIONS);
+
+    return {
+      accessToken,
+      expiresIn,
+    };
+  }
+
+  @Public()
+  @Post('/refresh')
+  @HttpCode(200)
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const refreshToken = req.cookies.refresh;
+
+    const {
+      refreshToken: newRefreshToken,
+      accessToken,
+      expiresIn,
+    } = await this.authService.refresh(refreshToken);
+
+    res.cookie('refresh', newRefreshToken, REFRESH_COOKIE_OPTIONS);
+
+    return {
+      accessToken,
+      expiresIn,
+    };
   }
 }
