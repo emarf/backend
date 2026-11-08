@@ -54,4 +54,11 @@ export class AuthController {
 
     res.clearCookie('sid', COOKIE_OPTIONS);
   }
+
+  @Public()
+  @Post('/token')
+  @HttpCode(200)
+  async token(@Body() dto: LoginDto) {
+    return this.authService.token(dto);
+  }
 }

@@ -17,3 +17,13 @@ Content-Type: application/json
 ###
 
 GET http://localhost:3000/me/orders
+
+
+###
+POST http://localhost:3000/auth/token
+Content-Type: application/json
+
+{
+  "email": "test@gmail.com",
+  "password": "test password"
+}

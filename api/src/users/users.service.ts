@@ -71,4 +71,11 @@ export class UsersService {
       where: { email },
     });
   }
+
+  async getUserById(id: number) {
+    return this.prisma.user.findUnique({
+      select: USER_SELECT,
+      where: { id },
+    });
+  }
 }
